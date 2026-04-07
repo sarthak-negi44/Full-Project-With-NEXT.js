@@ -153,7 +153,12 @@ function normalizeDate(dateString: string): string {
   if (isNaN(date.getTime())) {
     throw new Error('Invalid date format');
   }
-  return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  const normalized = date.toISOString().split('T')[0];
+  // Verify the date didn't roll over (e.g., Feb 30 -> Mar 2)
+  if (normalized !== dateString.trim()) {
+    throw new Error('Invalid calendar date');
+  }
+  return normalized;
 }
 
 // Helper function to normalize time format
