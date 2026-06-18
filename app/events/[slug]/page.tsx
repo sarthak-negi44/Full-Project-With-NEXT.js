@@ -4,10 +4,10 @@ import {notFound} from 'next/navigation'
 import BookEvent from '@/app/components/BookEvent';
 import EventCard from '@/app/components/EventCard';
 import Event, { IEvent } from '@/database/event.model';
-
 import { getSimilarEventBySlug } from '@/lib/actions/event.actions';
-
+import { cacheLife } from 'next/cache';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+console.log(BASE_URL);
  
 
 const EventDetailItem = ({icon, alt, label}: {icon: string, alt: string, label: string})=> (
@@ -35,13 +35,17 @@ const EventTags = ({tags}: {tags: string[]})=> (
 )
 
 const EventDetailPage = async({ params }: { params: Promise<{ slug: string }>})=> {
+  "use cache";
+  cacheLife("hours");
+
   const {slug} = await params;
   const request = await fetch(`${BASE_URL}/api/events/${slug}`);
-  const {event  :{description, image, overview, date, time, location, mode, agenda, audience, organizer, tags}} = await request.json();
+  const { event } = await request.json();
+  const { id, slug: eventSlug, description, image, overview, date, time, location, mode, agenda, audience, organizer, tags } = event;
 
-  if(!description) notFound();
- const booking = 10;
-const similarEvents: IEvent[] = await getSimilarEventBySlug(slug);
+  if (!description) notFound();
+  const booking = 10;
+  const similarEvents: IEvent[] = await getSimilarEventBySlug(slug);
   return (
   <section id = "event">
   
@@ -82,7 +86,7 @@ const similarEvents: IEvent[] = await getSimilarEventBySlug(slug);
       ) : (
         <p className='text-sm'>No seats available</p>
       )}
-      <BookEvent />
+      <BookEvent eventId={id} slug={slug} />
       </div>
      </aside>
     </div>
